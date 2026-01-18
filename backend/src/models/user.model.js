@@ -47,3 +47,23 @@ export async function findUserById(id) {
   );
   return rows.length > 0 ? rows[0] : null;
 }
+
+export async function findAllUsers() {
+  const [rows] = await pool.query(
+    `SELECT id, email, role, is_active, created_at
+     FROM users
+     ORDER by created_at DESC`,
+  );
+  return rows;
+}
+
+export async function updateUserActiveStatus(userId, isActive) {
+  const [result] = await pool.query(
+    `UPDATE users
+    SET is_active = ?
+    WHERE id = ?`,
+    [isActive ? 1 : 0, userId],
+  );
+
+  return result.affectedRows > 0;
+}
