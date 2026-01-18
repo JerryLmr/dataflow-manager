@@ -32,3 +32,18 @@ export async function createUser({ email, passwordHash, role = "USER" }) {
   );
   return result.insertId;
 }
+
+/**
+ * Find a user by id
+ * @param {int} id
+ * @returns {Object|null}
+ */
+export async function findUserById(id) {
+  const [rows] = await pool.query(
+    `SELECT id, email, role, is_active
+         FROM users
+         WHERE id = ?`,
+    [id],
+  );
+  return rows.length > 0 ? rows[0] : null;
+}

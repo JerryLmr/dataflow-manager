@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
-import { findUserByEmail } from "../models/user.model.js";
+import jwt from "jsonwebtoken";
+import { findUserByEmail, createUser } from "../models/user.model.js";
 //import { use } from "react";
 
 /**
@@ -25,10 +26,43 @@ export async function login(email, password) {
   if (!isPasswordValid) {
     throw new Error("Invalid email or password");
   }
+  const token = jwt.sign(
+    {
+      userId: user.id,
+      role: user.role,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "1h",
+    },
+  );
+  return {
+    user: { id: user.id, email: user.email, role: user.role },
+    token,
+  };
+}
+
+export async function register(email, password) {
+  if (!email || !password) {
+    throw new Error("Email and password are required");
+  }
+
+  const existingUser = await findUserByEmail(email);
+  if (existingUser) {
+    throw new Error("Email already registered");
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  const userId = await createUser({
+    email,
+    passwordHash,
+    role: "USER",
+  });
 
   return {
-    id: user.id,
-    email: user.email,
-    role: user.role,
+    id: userId,
+    email,
+    role: "USER",
   };
 }
